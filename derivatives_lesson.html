@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Производные функций — qmath.kg</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #21262d;
+    --gold: #f0a500;
+    --gold-dim: #b87d00;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --success: #3fb950;
+    --error: #f85149;
+    --accent: #1f6feb;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0d1117 0%, #161b30 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 24px 36px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "f'(x)";
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 180px;
+    font-weight: 600;
+    color: rgba(240,165,0,0.04);
+    top: -20px; left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--gold); }
+  .hero p {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 480px;
+    margin: 0 auto 28px;
+    line-height: 1.6;
+  }
+
+  /* THEORY STRIP */
+  .theory-strip {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 20px 24px;
+    scrollbar-width: none;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .theory-strip::-webkit-scrollbar { display: none; }
+  .rule-chip {
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    cursor: default;
+    transition: border-color 0.2s;
+  }
+  .rule-chip strong { color: var(--gold); display: block; font-size: 11px; margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
+  .rule-chip:hover { border-color: var(--gold-dim); }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    max-width: 800px;
+    margin: 8px auto 0;
+    padding: 0 24px;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), #ffcc44);
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* TASKS */
+  .tasks {
+    max-width: 800px;
+    margin: 24px auto 0;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .task-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    transition: border-color 0.3s;
+  }
+  .task-card.correct { border-color: var(--success); }
+  .task-card.wrong   { border-color: var(--error); }
+
+  .task-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .task-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(240,165,0,0.12);
+    border: 1.5px solid var(--gold-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+  .task-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+  .task-status {
+    margin-left: auto;
+    font-size: 18px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .task-card.correct .task-status { opacity: 1; }
+  .task-card.wrong   .task-status { opacity: 1; }
+
+  .task-func {
+    background: rgba(240,165,0,0.05);
+    border: 1px solid rgba(240,165,0,0.15);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 17px;
+    text-align: center;
+    color: var(--text);
+    min-height: 52px;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 480px) {
+    .options-grid { grid-template-columns: 1fr; }
+  }
+
+  .option-btn {
+    background: rgba(255,255,255,0.03);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 50px;
+    font-family: 'Inter', sans-serif;
+  }
+  .option-btn .opt-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--gold-dim);
+    background: rgba(240,165,0,0.06);
+  }
+  .option-btn:hover:not(:disabled) .opt-dot {
+    border-color: var(--gold);
+  }
+  .option-btn.selected {
+    border-color: var(--accent);
+    background: rgba(31,111,235,0.08);
+  }
+  .option-btn.selected .opt-dot {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+  .option-btn.correct-ans {
+    border-color: var(--success) !important;
+    background: rgba(63,185,80,0.08) !important;
+  }
+  .option-btn.correct-ans .opt-dot {
+    border-color: var(--success) !important;
+    background: var(--success) !important;
+  }
+  .option-btn.wrong-ans {
+    border-color: var(--error) !important;
+    background: rgba(248,81,73,0.08) !important;
+  }
+  .option-btn.wrong-ans .opt-dot {
+    border-color: var(--error) !important;
+    background: var(--error) !important;
+  }
+  .option-btn:disabled { cursor: default; }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .btn-check {
+    background: var(--gold);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-check:hover { background: #ffcc44; }
+  .btn-check:active { transform: scale(0.98); }
+  .btn-check:disabled {
+    background: var(--border);
+    color: var(--muted);
+    cursor: default;
+  }
+
+  .btn-solution {
+    background: transparent;
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-solution:hover { border-color: var(--muted); color: var(--text); }
+
+  .feedback {
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    min-height: 22px;
+    transition: opacity 0.3s;
+    opacity: 0;
+  }
+  .feedback.show { opacity: 1; }
+  .feedback.ok  { color: var(--success); }
+  .feedback.err { color: var(--error); }
+
+  .solution-box {
+    display: none;
+    margin-top: 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  .solution-box.open { display: block; }
+  .solution-box strong { color: var(--gold); }
+
+  /* SCORE BANNER */
+  .score-banner {
+    display: none;
+    max-width: 800px;
+    margin: 24px auto 0;
+    padding: 0 24px;
+  }
+  .score-banner.show { display: block; }
+  .score-inner {
+    background: linear-gradient(135deg, #1a2332, #1f2d1f);
+    border: 1px solid var(--success);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    text-align: center;
+  }
+  .score-inner h2 { font-size: 24px; color: var(--text); margin-bottom: 8px; }
+  .score-inner p { color: var(--muted); font-size: 14px; }
+  .score-num { font-size: 52px; font-weight: 700; color: var(--gold); line-height: 1; margin: 12px 0; font-family: 'JetBrains Mono', monospace; }
+  .btn-restart {
+    margin-top: 20px;
+    background: var(--gold);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
+  }
+  .btn-restart:hover { background: #ffcc44; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="logo">qmath.kg</div>
+  <h1>Производные <span>простых функций</span></h1>
+  <p>Тренировочный урок. Найди производную каждой функции и выбери правильный ответ.</p>
+</div>
+
+<!-- Theory chips -->
+<div class="theory-strip">
+  <div class="rule-chip"><strong>Правило</strong>\((C)' = 0\)</div>
+  <div class="rule-chip"><strong>Правило</strong>\((x^n)' = nx^{n-1}\)</div>
+  <div class="rule-chip"><strong>Правило</strong>\((Cf)' = C \cdot f'\)</div>
+  <div class="rule-chip"><strong>Правило</strong>\((f+g)' = f'+g'\)</div>
+  <div class="rule-chip"><strong>Правило</strong>\(\left(\tfrac{f}{g}\right)' = \tfrac{f'g - fg'}{g^2}\)</div>
+  <div class="rule-chip"><strong>Правило</strong>\((fg)' = f'g + fg'\)</div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar-wrap">
+  <div class="progress-meta">
+    <span id="prog-label">0 / 5 решено</span>
+    <span id="prog-pct">0%</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+</div>
+
+<!-- Tasks -->
+<div class="tasks" id="tasks-container"></div>
+
+<!-- Score -->
+<div class="score-banner" id="score-banner">
+  <div class="score-inner">
+    <h2>Урок завершён! 🎉</h2>
+    <div class="score-num" id="score-num">0/5</div>
+    <p id="score-msg"></p>
+    <button class="btn-restart" onclick="restart()">Пройти заново</button>
+  </div>
+</div>
+
+<script>
+const tasks = [
+  {
+    func: "y = 5x - 4",
+    tex: "y = 5x - 4",
+    options: ["5x", "5x - 4", "20x", "5"],
+    answer: "5",
+    solution: `<strong>Правило:</strong> производная линейной функции <strong>(ax + b)' = a</strong>.<br>
+    \\((5x)' = 5,\\quad (-4)' = 0\\)<br>
+    Ответ: \\(y' = 5\\)`
+  },
+  {
+    func: "y = -x^3 + 4x^2 - 5",
+    tex: "y = -x^3 + 4x^2 - 5",
+    options: ["-3x^3 + 8x^2", "-3x^2 + 8x", "-3x^2 + 8x - 5", "3x^2 + 8x"],
+    answer: "-3x^2 + 8x",
+    solution: `<strong>Правило:</strong> \\((x^n)' = nx^{n-1}\\), производная константы = 0.<br>
+    \\((-x^3)' = -3x^2\\)<br>
+    \\((4x^2)' = 8x\\)<br>
+    \\((-5)' = 0\\)<br>
+    Ответ: \\(y' = -3x^2 + 8x\\)`
+  },
+  {
+    func: "y = (x-1)(x^2+3)",
+    tex: "y = (x-1)(x^2+3)",
+    options: ["3x^2 - 2x + 3", "3x^2 + 3", "3x^2 - 2x", "6x^2 - x + 3"],
+    answer: "3x^2 - 2x + 3",
+    solution: `<strong>Способ 1 — раскрыть скобки:</strong><br>
+    \\(y = x^3 + 3x - x^2 - 3\\)<br>
+    \\(y' = 3x^2 - 2x + 3\\)<br><br>
+    <strong>Способ 2 — правило произведения:</strong><br>
+    \\(y' = (x-1)'(x^2+3) + (x-1)(x^2+3)'\\)<br>
+    \\(= 1\\cdot(x^2+3) + (x-1)\\cdot 2x = x^2+3+2x^2-2x\\)<br>
+    \\(= 3x^2 - 2x + 3\\)`
+  },
+  {
+    func: "y = (x+2)^2 - 3x^3",
+    tex: "y = (x+2)^2 - 3x^3",
+    options: ["-9x^2 - 2x - 4", "-8x^2 + 2x + 4", "-9x^2 + 2x + 2", "-9x^2 + 2x + 4"],
+    answer: "-9x^2 + 2x + 4",
+    solution: `<strong>Раскроем скобки:</strong><br>
+    \\(y = x^2 + 4x + 4 - 3x^3\\)<br>
+    \\(y' = 2x + 4 - 9x^2\\)<br>
+    \\(= -9x^2 + 2x + 4\\)`
+  },
+  {
+    func: "y = \\dfrac{5+x}{x-3}",
+    tex: "y = \\dfrac{5+x}{x-3}",
+    options: ["-\\dfrac{8}{x-3}", "-\\dfrac{8}{(x-3)^2}", "\\dfrac{x-8}{(x-3)^2}", "\\dfrac{5}{x-3}"],
+    answer: "-\\dfrac{8}{(x-3)^2}",
+    solution: `<strong>Правило:</strong> \\(\\left(\\dfrac{f}{g}\\right)' = \\dfrac{f'g - fg'}{g^2}\\)<br><br>
+    \\(f = 5+x,\\quad f' = 1\\)<br>
+    \\(g = x-3,\\quad g' = 1\\)<br><br>
+    \\(y' = \\dfrac{1\\cdot(x-3) - (5+x)\\cdot 1}{(x-3)^2}\\)<br>
+    \\(= \\dfrac{x-3-5-x}{(x-3)^2} = \\dfrac{-8}{(x-3)^2}\\)`
+  }
+];
+
+let solved = 0;
+let results = new Array(tasks.length).fill(null);
+
+function renderTex(el) {
+  if (window.MathJax) MathJax.typesetPromise([el]);
+}
+
+function buildTasks() {
+  const container = document.getElementById('tasks-container');
+  container.innerHTML = '';
+  tasks.forEach((t, i) => {
+    const card = document.createElement('div');
+    card.className = 'task-card';
+    card.id = `card-${i}`;
+
+    const optHtml = t.options.map((opt, j) => `
+      <button class="option-btn" id="opt-${i}-${j}" onclick="selectOpt(${i}, ${j})" data-val="${opt}">
+        <span class="opt-dot"></span>
+        <span class="opt-tex">\\(${opt}\\)</span>
+      </button>
+    `).join('');
+
+    card.innerHTML = `
+      <div class="task-header">
+        <div class="task-num">${i+1}</div>
+        <div class="task-label">Задача ${i+1}</div>
+        <div class="task-status" id="status-${i}"></div>
+      </div>
+      <div class="task-func" id="func-${i}">Найти производную функции \\(${t.tex}\\)</div>
+      <div class="options-grid">${optHtml}</div>
+      <div class="actions">
+        <button class="btn-check" id="check-${i}" onclick="checkAnswer(${i})" disabled>Проверить</button>
+        <button class="btn-solution" onclick="toggleSolution(${i})">Посмотреть решение</button>
+      </div>
+      <div class="feedback" id="fb-${i}"></div>
+      <div class="solution-box" id="sol-${i}">${t.solution}</div>
+    `;
+    container.appendChild(card);
+    renderTex(card);
+  });
+}
+
+let selected = new Array(tasks.length).fill(null);
+
+function selectOpt(taskIdx, optIdx) {
+  const card = document.getElementById(`card-${taskIdx}`);
+  if (card.classList.contains('correct') || card.classList.contains('wrong')) return;
+  
+  // Remove previous selection
+  tasks[taskIdx].options.forEach((_, j) => {
+    document.getElementById(`opt-${taskIdx}-${j}`).classList.remove('selected');
+  });
+  document.getElementById(`opt-${taskIdx}-${optIdx}`).classList.add('selected');
+  selected[taskIdx] = optIdx;
+  document.getElementById(`check-${taskIdx}`).disabled = false;
+}
+
+function checkAnswer(taskIdx) {
+  const t = tasks[taskIdx];
+  const selIdx = selected[taskIdx];
+  if (selIdx === null) return;
+
+  const card = document.getElementById(`card-${taskIdx}`);
+  const fb = document.getElementById(`fb-${taskIdx}`);
+  const statusEl = document.getElementById(`status-${taskIdx}`);
+
+  // Disable all options
+  t.options.forEach((_, j) => {
+    document.getElementById(`opt-${taskIdx}-${j}`).disabled = true;
+  });
+  document.getElementById(`check-${taskIdx}`).disabled = true;
+
+  const chosenVal = t.options[selIdx];
+  const correct = chosenVal === t.answer;
+
+  // Mark correct answer green
+  t.options.forEach((opt, j) => {
+    const btn = document.getElementById(`opt-${taskIdx}-${j}`);
+    if (opt === t.answer) btn.classList.add('correct-ans');
+  });
+
+  if (correct) {
+    card.classList.add('correct');
+    statusEl.textContent = '✓';
+    statusEl.style.color = 'var(--success)';
+    fb.textContent = '✓ Верно! Отлично!';
+    fb.className = 'feedback show ok';
+    if (results[taskIdx] === null) {
+      results[taskIdx] = true;
+      solved++;
+    }
+  } else {
+    card.classList.add('wrong');
+    statusEl.textContent = '✗';
+    statusEl.style.color = 'var(--error)';
+    fb.textContent = '✗ Неверно. Посмотрите решение ниже.';
+    fb.className = 'feedback show err';
+    document.getElementById(`opt-${taskIdx}-${selIdx}`).classList.add('wrong-ans');
+    if (results[taskIdx] === null) results[taskIdx] = false;
+    document.getElementById(`sol-${taskIdx}`).classList.add('open');
+    renderTex(document.getElementById(`sol-${taskIdx}`));
+  }
+
+  updateProgress();
+  checkAllDone();
+}
+
+function toggleSolution(taskIdx) {
+  const sol = document.getElementById(`sol-${taskIdx}`);
+  sol.classList.toggle('open');
+  if (sol.classList.contains('open')) renderTex(sol);
+}
+
+function updateProgress() {
+  const done = results.filter(r => r !== null).length;
+  const pct = Math.round(done / tasks.length * 100);
+  document.getElementById('prog-label').textContent = `${done} / ${tasks.length} решено`;
+  document.getElementById('prog-pct').textContent = `${pct}%`;
+  document.getElementById('prog-fill').style.width = pct + '%';
+}
+
+function checkAllDone() {
+  const done = results.filter(r => r !== null).length;
+  if (done < tasks.length) return;
+
+  const correct = results.filter(r => r === true).length;
+  const banner = document.getElementById('score-banner');
+  const msg = document.getElementById('score-msg');
+  document.getElementById('score-num').textContent = `${correct}/${tasks.length}`;
+
+  if (correct === tasks.length) msg.textContent = 'Превосходно! Все задачи решены правильно! 🏆';
+  else if (correct >= 4) msg.textContent = 'Отличный результат! Почти всё верно.';
+  else if (correct >= 3) msg.textContent = 'Хороший результат. Повтори правила и попробуй снова!';
+  else msg.textContent = 'Посмотри решения внимательно и повтори тему.';
+
+  banner.classList.add('show');
+  banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function restart() {
+  solved = 0;
+  results = new Array(tasks.length).fill(null);
+  selected = new Array(tasks.length).fill(null);
+  document.getElementById('score-banner').classList.remove('show');
+  updateProgress();
+  buildTasks();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+buildTasks();
+</script>
+</body>
+</html>
